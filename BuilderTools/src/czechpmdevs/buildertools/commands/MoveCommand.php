@@ -24,11 +24,13 @@ use czechpmdevs\buildertools\BuilderTools;
 use czechpmdevs\buildertools\editors\Editor;
 use czechpmdevs\buildertools\editors\Filler;
 use czechpmdevs\buildertools\editors\object\BlockList;
+use czechpmdevs\buildertools\event\BuilderToolsEvent;
 use czechpmdevs\buildertools\Selectors;
 use pocketmine\block\Block;
 use pocketmine\command\CommandSender;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
+use ReflectionException;
 
 /**
  * Class MoveCommand
@@ -47,6 +49,7 @@ class MoveCommand extends BuilderToolsCommand {
      * @param CommandSender $sender
      * @param string $commandLabel
      * @param array $args
+     * @throws ReflectionException
      */
     public function execute(CommandSender $sender, string $commandLabel, array $args) {
         if(!$this->testPermission($sender)) return;
@@ -72,6 +75,11 @@ class MoveCommand extends BuilderToolsCommand {
 
         $firstPos = Selectors::getPosition($sender, 1);
         $secondPos = Selectors::getPosition($sender, 2);
+
+        $event = new BuilderToolsEvent($sender, $firstPos, $secondPos);
+        $event->call();
+        if($event->isCancelled())
+            return;
 
         if($firstPos->getLevel()->getName() != $secondPos->getLevel()->getName()) {
             $sender->sendMessage(BuilderTools::getPrefix()."§cPositions must be in same level");

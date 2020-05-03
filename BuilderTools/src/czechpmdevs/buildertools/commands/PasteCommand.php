@@ -27,6 +27,7 @@ use czechpmdevs\buildertools\Selectors;
 use pocketmine\command\CommandSender;
 use pocketmine\level\Position;
 use pocketmine\Player;
+use ReflectionException;
 
 /**
  * Class CopyCommand
@@ -46,6 +47,7 @@ class PasteCommand extends BuilderToolsCommand {
      * @param string $commandLabel
      * @param array $args
      * @return void
+     * @throws ReflectionException
      */
     public function execute(CommandSender $sender, string $commandLabel, array $args) {
         if(!$this->testPermission($sender)) return;

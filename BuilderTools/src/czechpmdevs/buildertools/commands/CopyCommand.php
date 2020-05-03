@@ -23,9 +23,11 @@ namespace czechpmdevs\buildertools\commands;
 use czechpmdevs\buildertools\BuilderTools;
 use czechpmdevs\buildertools\editors\Copier;
 use czechpmdevs\buildertools\editors\Editor;
+use czechpmdevs\buildertools\event\BuilderToolsEvent;
 use czechpmdevs\buildertools\Selectors;
 use pocketmine\command\CommandSender;
 use pocketmine\Player;
+use ReflectionException;
 
 /**
  * Class CopyCommand
@@ -45,6 +47,7 @@ class CopyCommand extends BuilderToolsCommand {
      * @param string $commandLabel
      * @param array $args
      * @return void
+     * @throws ReflectionException
      */
     public function execute(CommandSender $sender, string $commandLabel, array $args) {
         if(!$this->testPermission($sender)) return;
@@ -62,6 +65,12 @@ class CopyCommand extends BuilderToolsCommand {
         }
         $pos1 = Selectors::getPosition($sender, 1);
         $pos2 = Selectors::getPosition($sender, 2);
+
+        $event = new BuilderToolsEvent($sender, $pos1, $pos2);
+        $event->call();
+        if($event->isCancelled())
+            return;
+
         /** @var Copier $copier */
         $copier = BuilderTools::getEditor(Editor::COPIER);
         $copier->copy($pos1->getX(), $pos1->getY(), $pos1->getZ(), $pos2->getX(), $pos2->getY(), $pos2->getZ(), $sender);

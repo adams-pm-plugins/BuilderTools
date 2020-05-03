@@ -24,9 +24,11 @@ use czechpmdevs\buildertools\BuilderTools;
 use czechpmdevs\buildertools\editors\Editor;
 use czechpmdevs\buildertools\editors\Filler;
 use czechpmdevs\buildertools\editors\Naturalizer;
+use czechpmdevs\buildertools\event\BuilderToolsEvent;
 use czechpmdevs\buildertools\Selectors;
 use pocketmine\command\CommandSender;
 use pocketmine\Player;
+use ReflectionException;
 
 /**
  * Class NaturalizeCommand
@@ -46,6 +48,7 @@ class NaturalizeCommand extends BuilderToolsCommand {
      * @param string $commandLabel
      * @param array $args
      * @return void
+     * @throws ReflectionException
      */
     public function execute(CommandSender $sender, string $commandLabel, array $args) {
         if(!$this->testPermission($sender)) return;
@@ -67,9 +70,13 @@ class NaturalizeCommand extends BuilderToolsCommand {
             $sender->sendMessage(BuilderTools::getPrefix()."§cPositions must be in same level");
             return;
         }
+        $event = new BuilderToolsEvent($sender, $firstPos, $secondPos);
+        $event->call();
+        if($event->isCancelled())
+            return;
         /** @var Naturalizer $filler */
         $filler = BuilderTools::getEditor(Editor::NATURALIZER);
-        $count = $filler->naturalize($firstPos->getX(), $firstPos->getY(), $firstPos->getZ(), $secondPos->getX(), $secondPos->getY(), $secondPos->getZ(), $sender->getLevel(), $sender);
+        $filler->naturalize($firstPos->getX(), $firstPos->getY(), $firstPos->getZ(), $secondPos->getX(), $secondPos->getY(), $secondPos->getZ(), $sender->getLevel(), $sender);
         $sender->sendMessage(BuilderTools::getPrefix()."§aSelected area successfully naturalized!");
     }
 }

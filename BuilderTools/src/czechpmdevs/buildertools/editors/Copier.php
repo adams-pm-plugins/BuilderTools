@@ -20,17 +20,17 @@ declare(strict_types=1);
 
 namespace czechpmdevs\buildertools\editors;
 
+use function array_values;
 use czechpmdevs\buildertools\BuilderTools;
 use czechpmdevs\buildertools\editors\object\BlockList;
-use czechpmdevs\buildertools\editors\object\EditorResult;
+use czechpmdevs\buildertools\event\BuilderToolsEvent;
 use czechpmdevs\buildertools\utils\Math;
 use pocketmine\block\Block;
-use pocketmine\item\Item;
-use pocketmine\level\format\EmptySubChunk;
+use pocketmine\block\Planks;
 use pocketmine\level\Position;
-use pocketmine\math\Vector2;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
+use ReflectionException;
 
 /**
  * Class Copier
@@ -119,6 +119,7 @@ class Copier extends Editor {
 
     /**
      * @param Player $player
+     * @throws ReflectionException
      */
     public function paste(Player $player) {
         if(!isset($this->copyData[$player->getName()])) {
@@ -128,6 +129,24 @@ class Copier extends Editor {
 
         /** @var array $blocks */
         $blocks = $this->copyData[$player->getName()]["data"];
+
+        /** @var Planks $plank2 */
+        $plank1 = array_values($blocks)[0][0];
+        $firstPos = new Position($plank1->x, $plank1->y, $plank1->z, $player->getLevel());
+        /** @var Planks $plank2 */
+        $av = array_values($blocks);
+        $plank2 = end($av)[0];
+        $secondPos = new Position($plank2->x, $plank2->y, $plank2->z, $player->getLevel());
+
+    //    echo "\nFIRST POS\n";
+    //    var_dump($firstPos);
+    //    echo "\nSECOND POS\n";
+    //    var_dump($secondPos);
+
+        $event = new BuilderToolsEvent($player, $firstPos, $secondPos);
+        $event->call();
+        if($event->isCancelled())
+            return;
 
         $list = new BlockList();
         $list->setLevel($player->getLevel());

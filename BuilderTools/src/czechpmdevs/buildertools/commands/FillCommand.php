@@ -23,9 +23,11 @@ namespace czechpmdevs\buildertools\commands;
 use czechpmdevs\buildertools\BuilderTools;
 use czechpmdevs\buildertools\editors\Editor;
 use czechpmdevs\buildertools\editors\Filler;
+use czechpmdevs\buildertools\event\BuilderToolsEvent;
 use czechpmdevs\buildertools\Selectors;
 use pocketmine\command\CommandSender;
 use pocketmine\Player;
+use ReflectionException;
 
 /**
  * Class FillCommand
@@ -45,6 +47,7 @@ class FillCommand extends BuilderToolsCommand {
      * @param string $commandLabel
      * @param array $args
      * @return void
+     * @throws ReflectionException
      */
     public function execute(CommandSender $sender, string $commandLabel, array $args) {
         if(!$this->testPermission($sender)) return;
@@ -74,6 +77,11 @@ class FillCommand extends BuilderToolsCommand {
             $sender->sendMessage(BuilderTools::getPrefix()."§cPositions must be in same level");
             return;
         }
+
+        $event = new BuilderToolsEvent($sender, $firstPos, $secondPos);
+        $event->call();
+        if($event->isCancelled())
+            return;
 
         $startTime = microtime(true);
 

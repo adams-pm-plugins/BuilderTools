@@ -23,9 +23,11 @@ namespace czechpmdevs\buildertools\commands;
 use czechpmdevs\buildertools\BuilderTools;
 use czechpmdevs\buildertools\editors\Editor;
 use czechpmdevs\buildertools\editors\Fixer;
+use czechpmdevs\buildertools\event\BuilderToolsEvent;
 use czechpmdevs\buildertools\Selectors;
 use pocketmine\command\CommandSender;
 use pocketmine\Player;
+use ReflectionException;
 
 /**
  * Class FixCommand
@@ -45,6 +47,7 @@ class FixCommand extends BuilderToolsCommand {
      * @param string $commandLabel
      * @param array $args
      * @return mixed|void
+     * @throws ReflectionException
      */
     public function execute(CommandSender $sender, string $commandLabel, array $args) {
         if(!$this->testPermission($sender)) return;
@@ -65,6 +68,11 @@ class FixCommand extends BuilderToolsCommand {
 
         $firstPos = Selectors::getPosition($sender, 1);
         $secondPos = Selectors::getPosition($sender, 2);
+
+        $event = new BuilderToolsEvent($sender, $firstPos, $secondPos);
+        $event->call();
+        if($event->isCancelled())
+            return;
         
         if($firstPos->getLevel()->getName() != $secondPos->getLevel()->getName()) {
             $sender->sendMessage(BuilderTools::getPrefix()."§cPositions must be in same level");
